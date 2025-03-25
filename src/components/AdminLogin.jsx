@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
-import { loginSuccess } from "../redux"; // Import login action
+import { loginSuccess } from "../redux";
 import Navbar from "./NavbarH";
 
 const AdminLogin = () => {
@@ -10,7 +10,7 @@ const AdminLogin = () => {
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
   const navigate = useNavigate();
-  const dispatch = useDispatch(); // Initialize useDispatch hook
+  const dispatch = useDispatch();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -39,7 +39,6 @@ const AdminLogin = () => {
     <div className="bg-black min-h-screen">
 
 
-      {/* Login Section */}
       <div className="flex items-center justify-center min-h-screen bg-black">
         <div
           className="text-white p-8 rounded-lg shadow-lg w-full max-w-lg border"

@@ -10,7 +10,7 @@ const UserSearch = () => {
   const [name, setName] = useState("");
   const [users, setUsers] = useState([]);
   const [error, setError] = useState("");
-  const dispatch = useDispatch(); // Initialize useDispatch hook
+  const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const handleSearch = async () => {
@@ -18,12 +18,10 @@ const UserSearch = () => {
       setError("");
       setUsers([]);
 
-      // Construct query parameters
       const query = new URLSearchParams();
       if (email) query.append("email", email);
       if (name) query.append("name", name);
 
-      // Call the backend server.js code
       const response = await axios.get(
         `http://localhost:5000/api/user/profile?${query.toString()}`
       );
@@ -34,11 +32,9 @@ const UserSearch = () => {
   };
 
   const handleLogout = () => {
-    // Remove the token from localStorage cookies
     dispatch(logout());
     localStorage.removeItem("token");
 
-    // Redirect to the login page
     navigate("/login");
   };
 

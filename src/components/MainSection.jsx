@@ -2,12 +2,12 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "./NavbarH";
 import { FaReact, FaNodeJs, FaDatabase } from "react-icons/fa";
-import { motion } from "framer-motion"; // For animations
-import Chart from "chart.js/auto"; // For demo graph
+import { motion } from "framer-motion";
+import Chart from "chart.js/auto";
 
 const MainSection = () => {
   const [isLogin, setIsLogin] = useState(true);
-  const [showDemo, setShowDemo] = useState(false); // State for demo visibility
+  const [showDemo, setShowDemo] = useState(false);
   const navigate = useNavigate();
 
   const toggleForm = () => setIsLogin(!isLogin);
@@ -19,7 +19,6 @@ const MainSection = () => {
   const handleDemoToggle = () => {
     setShowDemo(!showDemo);
     if (!showDemo) {
-      // Initialize a simple bar chart when demo is opened
       setTimeout(() => {
         const ctx = document.getElementById("demoChart")?.getContext("2d");
         if (ctx) {
@@ -41,7 +40,7 @@ const MainSection = () => {
             },
           });
         }
-      }, 100); // Delay to ensure canvas is rendered
+      }, 100);
     }
   };
 
@@ -63,12 +62,12 @@ const MainSection = () => {
             Build interactive 2D/3D graphs, analyze trends, and uncover insights with ease. Join today and experience the future of data analytics.
           </p>
           <div className="flex justify-center gap-4">
-            <button
+            {/* <button
               onClick={handleGetStarted}
               className="bg-orange-500 hover:bg-orange-600 text-black font-bold py-3 px-8 rounded-lg transition duration-300 shadow-lg"
             >
               {isLogin ? "Login" : "Register"}
-            </button>
+            </button> */}
             <button
               onClick={handleDemoToggle}
               className="bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 px-8 rounded-lg transition duration-300 shadow-lg"
