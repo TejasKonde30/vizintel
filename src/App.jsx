@@ -8,7 +8,8 @@ import Navbar from "./components/NavbarH";
 import MainSection from "./components/MainSection";
 import Login from "./components/Login";
 import Register from "./components/Register";
-import Dashboard from "./components/Dashboard";
+import FileUploadPage from "./components/FileUploadPage"; // New component
+import ManualDataEntryPage from "./components/ManualDataEntryPage"; // New component
 import ProtectedRoute from "./ProtectedRoute";
 import PublicRoute from "./PublicRoute";
 import Contact from "./components/Contact";
@@ -19,15 +20,10 @@ import ManageUsers from "./components/ManageUsers";
 import UserSearch from "./components/UserSearch";
 
 const AppContent = () => {
-  const location = useLocation(); // Use useLocation to get the current route
+  const location = useLocation();
 
-  // Define routes where the Navbar should NOT be shown
-  const hideNavbarRoutes = [
-    "/dashboard", // Hide on Dashboard
-    "/Admindashboard", // Hide on AdminDashboard
-    "/UserSearch", // Hide on UserSearch
-    "/ManageUsers", // Hide on ManageUsers
-  ];
+  // Define routes where the Navbar should NOT be shown (only admin routes)
+  const hideNavbarRoutes = ["/Admindashboard", "/UserSearch", "/ManageUsers"];
 
   return (
     <>
@@ -38,7 +34,8 @@ const AppContent = () => {
         <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
         <Route path="/Adminlogin" element={<AdminLogin />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+        <Route path="/file-upload" element={<ProtectedRoute><FileUploadPage /></ProtectedRoute>} />
+        <Route path="/manual-data-entry" element={<ProtectedRoute><ManualDataEntryPage /></ProtectedRoute>} />
         <Route path="/contact" element={<ProtectedRoute><Contact /></ProtectedRoute>} />
         {/* Admin Routes */}
         <Route path="/Admindashboard" element={<AdminProtectedRoute><AdminDashboard /></AdminProtectedRoute>} />

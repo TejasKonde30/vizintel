@@ -186,6 +186,22 @@ app.put("/api/data/:id", authenticateToken, async (req, res) => {
   }
 });
 
+// Delete Data Route
+app.delete("/api/data/:id", authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const dataEntry = await Data.findOne({ _id: id, userId: req.user.userId });
+    if (!dataEntry) {
+      return res.status(404).json({ message: "Data not found" });
+    }
+    await Data.deleteOne({ _id: id });
+    res.json({ message: "Data deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Error deleting data", error: error.message });
+  }
+});
+
+
 // SuperAdmin Schema and Routes
 const superAdminSchema = new mongoose.Schema({
   name: { type: String, required: true, minlength: 3, maxlength: 100 },
