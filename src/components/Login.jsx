@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { loginSuccess } from "../redux";
 import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
-import { motion } from "framer-motion"; // For animations
+import { motion } from "framer-motion"; 
 
 const clientId = "707979060917-pvhb5npqbqed3c7vsqg530n2hbls1qik.apps.googleusercontent.com";
 
@@ -12,8 +12,8 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
-  const [isLoading, setIsLoading] = useState(false); // For local loading state
-  const [showPassword, setShowPassword] = useState(false); // For show/hide password
+  const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -32,7 +32,7 @@ const Login = () => {
       };
       dispatch(loginSuccess(userData));
       document.cookie = `authToken=${userData.token}; path=/; max-age=604800; Secure`;
-      setTimeout(() => navigate("/dashboard", { replace: true }), 500); // Slight delay for UX
+      setTimeout(() => navigate("/dashboard", { replace: true }), 500);
     } catch (error) {
       setMessage(error.response?.data?.message || "An error occurred");
     } finally {
@@ -159,14 +159,14 @@ const Login = () => {
           </div>
         </form>
 
-        {/* Google Login */}
+                                                  {/* Google Login */}
         <div className="mt-6">
-  {/* Modern "OR" Separator */}
-  <div className="flex items-center justify-center my-4">
-    <div className="flex-grow h-px bg-gray-600"></div>
-    <span className="mx-4 text-gray-400 text-sm">OR</span>
-    <div className="flex-grow h-px bg-gray-600"></div>
-  </div>
+                                                  {/* Modern "OR" Separator */}
+          <div className="flex items-center justify-center my-4">
+           <div className="flex-grow h-px bg-gray-600"></div>
+           <span className="mx-4 text-gray-400 text-sm">OR</span>
+           <div className="flex-grow h-px bg-gray-600"></div>
+          </div>
           <GoogleOAuthProvider clientId={clientId}>
             <GoogleLogin
               onSuccess={handleGoogleSuccess}

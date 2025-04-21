@@ -7,6 +7,7 @@ import store, { persistor } from "./redux";
 import Navbar from "./components/NavbarH";
 import MainSection from "./components/MainSection";
 import Login from "./components/Login";
+import Dashboard from "./components/Dashboard";
 import Register from "./components/Register";
 import FileUploadPage from "./components/FileUploadPage"; // New component
 import ManualDataEntryPage from "./components/ManualDataEntryPage"; // New component
@@ -34,6 +35,7 @@ const AppContent = () => {
         <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
         <Route path="/Adminlogin" element={<AdminLogin />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="/file-upload" element={<ProtectedRoute><FileUploadPage /></ProtectedRoute>} />
         <Route path="/manual-data-entry" element={<ProtectedRoute><ManualDataEntryPage /></ProtectedRoute>} />
         <Route path="/contact" element={<ProtectedRoute><Contact /></ProtectedRoute>} />

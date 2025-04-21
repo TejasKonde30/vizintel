@@ -17,12 +17,12 @@ const ManageUsers = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  // Handle input change
+
   const handleChange = (e) => {
     setSearchQuery({ ...searchQuery, [e.target.name]: e.target.value });
   };
 
-  // Fetch users from API
+
   const handleSearch = async () => {
     setLoading(true);
     setMessage("");
@@ -36,7 +36,7 @@ const ManageUsers = () => {
     setLoading(false);
   };
 
-  // Handle update input changes
+
   const handleUpdateChange = (e, userId) => {
     setUpdateData({
       ...updateData,
@@ -44,7 +44,7 @@ const ManageUsers = () => {
     });
   };
 
-  // Update user details
+
   const handleUpdate = async (userId, email) => {
     setLoading(true);
     setMessage("");
