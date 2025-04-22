@@ -1,33 +1,23 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { useDispatch } from 'react-redux'; 
-import { logout } from "../redux";
-import { useNavigate } from 'react-router-dom';
-import { useSelector } from "react-redux";
-
+import AdminNavbar from "./AdminNavbar";
 
 const ManageUsers = () => {
-    const { isAuthenticated ,user,token,identity } = useSelector((state) => state.auth);
-
   const [searchQuery, setSearchQuery] = useState({ email: "", name: "" });
   const [users, setUsers] = useState([]);
   const [updateData, setUpdateData] = useState({});
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
-
 
   const handleChange = (e) => {
     setSearchQuery({ ...searchQuery, [e.target.name]: e.target.value });
   };
 
-
   const handleSearch = async () => {
     setLoading(true);
     setMessage("");
     try {
-      const response = await axios.get(`http://localhost:5000/api/user/profile`, { params: searchQuery });
+      const response = await axios.get("http://localhost:5000/api/user/profile", { params: searchQuery });
       setUsers(response.data);
     } catch (error) {
       setMessage(error.response?.data?.message || "Error fetching users");
@@ -36,7 +26,6 @@ const ManageUsers = () => {
     setLoading(false);
   };
 
-
   const handleUpdateChange = (e, userId) => {
     setUpdateData({
       ...updateData,
@@ -44,6 +33,19 @@ const ManageUsers = () => {
     });
   };
 
+  const toggleSuspend = async (userId, email, currentStatus) => {
+    setLoading(true);
+    try {
+      await axios.put(`http://localhost:5000/api/user/manage?email=${email}`, {
+        suspend: !currentStatus
+      });
+      setMessage("User status updated");
+      handleSearch();
+    } catch (err) {
+      setMessage("Error updating suspension status");
+    }
+    setLoading(false);
+  };
 
   const handleUpdate = async (userId, email) => {
     setLoading(true);
@@ -59,17 +61,17 @@ const ManageUsers = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-center items-center p-6">
-
-      <h2 className="text-2xl font-bold mb-4">Manage Users</h2>
-      <div className="mb-4 flex gap-2">
+    <div className="bg-gray-100 min-h-screen">
+      <AdminNavbar />
+    <div className="w-full p-4">
+      <div className="mb-4 flex flex-wrap gap-2">
         <input
           type="text"
           name="email"
           placeholder="Search by Email"
           value={searchQuery.email}
           onChange={handleChange}
-          className="border p-2"
+          className="border p-2 rounded"
         />
         <input
           type="text"
@@ -77,57 +79,69 @@ const ManageUsers = () => {
           placeholder="Search by Name"
           value={searchQuery.name}
           onChange={handleChange}
-          className="border p-2"
+          className="border p-2 rounded"
         />
-        <button onClick={handleSearch} className="bg-blue-500 text-white px-4 py-2">Search</button>
+        <button onClick={handleSearch} className="bg-blue-500 text-white px-4 py-2 rounded">Search</button>
       </div>
 
       {loading && <p>Loading...</p>}
-      {message && <p className="text-red-500">{message}</p>}
+      {message && <p className="text-red-500 mb-2">{message}</p>}
 
       {users.length > 0 && (
         <table className="w-full border-collapse border border-gray-300">
           <thead>
-            <tr className="bg-gray-200">
+            <tr className="bg-gray-700 text-white">
               <th className="border p-2">Email</th>
-              <th className="border p-2">Name</th>
-              <th className="border p-2">School Name</th>
+              <th className="border p-2">Update Name</th>
+              <th className="border p-2">Update School</th>
+              <th className="border p-2">New Password</th>
+              <th className="border p-2">Suspend</th>
               <th className="border p-2">Actions</th>
             </tr>
           </thead>
           <tbody>
             {users.map((user) => (
-              <tr key={user._id} className="border">
+              <tr key={user._id} className="border border-gray-600">
                 <td className="border p-2">{user.email}</td>
                 <td className="border p-2">
                   <input
                     type="text"
                     name="newname"
-                    placeholder="Update Name"
+                    placeholder="New Name"
                     onChange={(e) => handleUpdateChange(e, user._id)}
-                    className="border p-1"
+                    className="border p-1 rounded"
                   />
                 </td>
                 <td className="border p-2">
                   <input
                     type="text"
                     name="newschoolName"
-                    placeholder="Update School Name"
+                    placeholder="New School"
                     onChange={(e) => handleUpdateChange(e, user._id)}
-                    className="border p-1"
+                    className="border p-1 rounded"
                   />
                 </td>
                 <td className="border p-2">
                   <input
                     type="password"
                     name="newPassword"
-                    placeholder="Update Password"
+                    placeholder="New Password"
                     onChange={(e) => handleUpdateChange(e, user._id)}
-                    className="border p-1"
+                    className="border p-1 rounded"
                   />
+                </td>
+                <td className="border p-2">
+                  <button
+                    onClick={() => toggleSuspend(user._id, user.email, user.isSuspended)}
+                    className={`px-3 py-1 rounded text-white ${user.isSuspended ? "bg-green-600" : "bg-red-600"}`}
+                  >
+                    {user.isSuspended ? "Activate" : "Suspend"}
+                  </button>
+                </td>
+                <td className="border p-2">
                   <button
                     onClick={() => handleUpdate(user._id, user.email)}
-                    className="bg-green-500 text-white px-2 py-1 ml-2"
+                    className="bg-green-500 text-white px-3 py-1 rounded"
                   >
                     Update
                   </button>
@@ -137,9 +151,10 @@ const ManageUsers = () => {
           </tbody>
         </table>
       )}
-
+    </div>
     </div>
   );
 };
 
 export default ManageUsers;
+

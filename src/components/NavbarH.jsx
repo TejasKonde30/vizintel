@@ -7,7 +7,7 @@ import { FaUser, FaSignOutAlt, FaTachometerAlt, FaCog, FaBars, FaTimes, FaUpload
 import LoadingBar from "react-top-loading-bar";
 import axios from "axios";
 
-const Navbar = () => {
+const UserNavbar = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isHamburgerOpen, setIsHamburgerOpen] = useState(false);
   const [isServicesOpen, setIsServicesOpen] = useState(false); // New state for Services dropdown
@@ -321,4 +321,4 @@ const Navbar = () => {
   );
 };
 
-export default Navbar;
+export default UserNavbar;

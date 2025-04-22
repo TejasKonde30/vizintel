@@ -1,125 +1,167 @@
-import React, { useState } from 'react';
-import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+import React, { useState } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
 import { loginSuccess } from "../redux";
-import Navbar from "./NavbarH";
+import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
+import { motion } from "framer-motion";
+import AdminNavbar from "./AdminNavbar";
+
+const clientId = "707979060917-pvhb5npqbqed3c7vsqg530n2hbls1qik.apps.googleusercontent.com";
 
 const AdminLogin = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [message, setMessage] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [message, setMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
+    setMessage("");
     try {
-      const response = await axios.post('http://localhost:5000/api/auth/superadminlogin', {
+      const response = await axios.post("http://localhost:5000/api/auth/superadminlogin", { email, password });
+      setMessage("Login successful");
+      const adminData = {
         email,
-        password,
-      });
-
-      setMessage('Login successful');
-
-      const adminData = { email, token: response.data.authToken, name: response.data.name, identity: response.data.identity };
-      console.log(response);
-
+        token: response.data.authToken,
+        name: response.data.name,
+        identity: response.data.identity || 1,
+      };
       dispatch(loginSuccess(adminData));
-
       document.cookie = `authToken=${adminData.token}; path=/; max-age=604800; Secure`;
-
-      navigate('/AdminDashboard');
+      setTimeout(() => navigate("/AdminDashboard", { replace: true }), 500);
     } catch (error) {
-      setMessage(error.response?.data?.message || 'An error occurred');
+      setMessage(error.response?.data?.message || "An error occurred");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleSuccess = async (data) => {
+    setIsLoading(true);
+    setMessage("");
+    const { credential } = data;
+    try {
+      const response = await axios.post("http://localhost:5000/adminAuth/google", { token: credential });
+      setMessage("Login successful");
+      const adminData = {
+        email: response.data.email,
+        token: response.data.authToken,
+        name: response.data.name,
+        identity: response.data.identity || 1,
+      };
+      dispatch(loginSuccess(adminData));
+      document.cookie = `authToken=${adminData.token}; path=/; max-age=604800; Secure`;
+      setTimeout(() => navigate("/AdminDashboard", { replace: true }), 500);
+    } catch (error) {
+      setMessage("Google login failed");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
     <div className="bg-black min-h-screen">
-
-
-      <div className="flex items-center justify-center min-h-screen bg-black">
-        <div
-          className="text-white p-8 rounded-lg shadow-lg w-full max-w-lg border"
-          style={{ backgroundColor: "rgb(43, 43, 43)", borderColor: "rgb(55, 55, 55)" }}
+      <AdminNavbar />
+      <div className="flex items-center justify-center min-h-[90vh] p-4">
+        <motion.div
+          className="w-full max-w-md p-8 rounded-xl shadow-2xl border"
+          style={{ background: "linear-gradient(135deg, #2b2b2b, #3b3b3b)", borderColor: "#555" }}
+          initial={{ opacity: 0, y: -50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
         >
-          <h2 className="text-3xl font-bold text-center mb-6">Admin Login</h2>
-          <form onSubmit={handleLogin} className="space-y-6">
-            {message && <p className="text-center text-red-500">{message}</p>}
+          <h2 className="text-3xl font-bold text-center text-white mb-6">Admin Login</h2>
+
+          {message && (
+            <motion.p
+              className={`text-center p-2 rounded-lg ${message === "Login successful" ? "bg-green-500/20 text-green-300" : "bg-red-500/20 text-red-300"}`}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3 }}
+            >
+              {message}
+            </motion.p>
+          )}
+
+          <form onSubmit={handleLogin} className="space-y-6 mt-4">
             <div>
-              <label className="block text-gray-300 mb-1">Email</label>
+              <label className="block text-gray-300 text-sm mb-1">Email</label>
               <input
                 type="email"
-                className="w-full p-3 rounded-lg text-white placeholder-gray-400 border"
-                style={{
-                  backgroundColor: "rgb(55, 55, 55)",
-                  borderColor: "rgb(75, 75, 75)",
-                }}
-                placeholder="Email"
+                className="w-full p-3 rounded-lg bg-gray-700 text-white placeholder-gray-400 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-200"
+                placeholder="Enter admin email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
               />
             </div>
             <div>
-              <label className="block text-gray-300 mb-1">Password</label>
-              <input
-                type="password"
-                className="w-full p-3 rounded-lg text-white placeholder-gray-400 border"
-                style={{
-                  backgroundColor: "rgb(55, 55, 55)",
-                  borderColor: "rgb(75, 75, 75)",
-                }}
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
+              <label className="block text-gray-300 text-sm mb-1">Password</label>
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  className="w-full p-3 rounded-lg bg-gray-700 text-white placeholder-gray-400 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-200"
+                  placeholder="Enter admin password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-orange-500"
+                >
+                  {showPassword ? "Hide" : "Show"}
+                </button>
+              </div>
             </div>
-            <div className="flex justify-between items-center text-sm">
-              <label className="flex items-center">
-                <input type="checkbox" className="mr-2 accent-orange-500" />
-                Show password
-              </label>
-              <a href="#" className="text-orange-500 hover:underline">Forgot password?</a>
+
+            <div className="flex space-x-4">
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-1/2 p-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold rounded-lg hover:from-orange-600 hover:to-orange-700 transition duration-300 flex items-center justify-center disabled:opacity-50"
+              >
+                {isLoading ? (
+                  <svg className="animate-spin h-5 w-5 mr-2 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8h8a8 8 0 01-16 0z"></path>
+                  </svg>
+                ) : null}
+                {isLoading ? "Logging in..." : "Login"}
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate("/register")}
+                className="w-1/2 p-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold rounded-lg hover:from-orange-600 hover:to-orange-700 transition duration-300"
+              >
+                Register
+              </button>
             </div>
-            <button
-              type="submit"
-              className="w-full p-3 bg-orange-500 rounded-lg text-white font-bold hover:bg-orange-600 transition duration-300"
-            >
-              Login
-            </button>
           </form>
 
-          <div className="mt-6 text-center">
-            <p className="text-gray-300 mb-4">OR</p>
-            <button
-              className="flex items-center justify-center w-full p-3 text-white font-bold rounded-lg transition duration-300"
-              style={{
-                backgroundColor: "rgb(55, 55, 55)",
-                borderColor: "rgb(75, 75, 75)",
-              }}
-            >
-              <img
-                src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg"
-                alt="Google Logo"
-                className="w-5 h-5 mr-2"
+          <div className="mt-6">
+            <div className="flex items-center justify-center my-4">
+              <div className="flex-grow h-px bg-gray-600"></div>
+              <span className="mx-4 text-gray-400 text-sm">OR</span>
+              <div className="flex-grow h-px bg-gray-600"></div>
+            </div>
+            <GoogleOAuthProvider clientId={clientId}>
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={() => setMessage("Google login failed")}
               />
-              Sign in with Google
-            </button>
+            </GoogleOAuthProvider>
           </div>
-        </div>
+        </motion.div>
       </div>
     </div>
   );
 };
 
 export default AdminLogin;
-
-
-
-
-
-
-

@@ -32,6 +32,9 @@ app.use(bodyParser.json());
 app.use(express.json());
 app.use(cookieParser());
 
+//Ainsight API
+app.use('/api/insights', require('./routes/insightRoutes'));
+
 // Connect to MongoDB
 mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
@@ -46,7 +49,10 @@ const userSchema = new mongoose.Schema({
   email: { type: String, unique: true, required: true },
   password: { type: String, required: true, minlength: 8 },
   schoolName: { type: String, required: true },
+  loginLogs: [{ type: Date, default: Date.now }], 
+  isSuspended: { type: Boolean, default: false }, 
 });
+
 const User = mongoose.model("User", userSchema);
 
 // Data Schema for storing Excel/Manual data
@@ -75,6 +81,7 @@ const upload = multer({
 });
 
 // Middleware to verify JWT
+// server.js, replace authenticateToken middleware
 const authenticateToken = (req, res, next) => {
   const token = req.cookies.authToken;
   if (!token) {
@@ -86,6 +93,9 @@ const authenticateToken = (req, res, next) => {
         return res.status(403).json({ message: "Token expired" });
       }
       return res.status(403).json({ message: "Invalid token", error: err.message });
+    }
+    if (decoded.role !== "superadmin") {
+      return res.status(403).json({ message: "Unauthorized: SuperAdmin access required" });
     }
     req.user = decoded;
     next();
@@ -238,6 +248,9 @@ app.post("/api/auth/login", async (req, res) => {
     if (!user) return res.status(400).json({ message: "Invalid credentials" });
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
+
+    user.loginLogs.push(new Date());
+    await user.save();
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
     res.cookie("authToken", token, {
       httpOnly: true,
@@ -401,6 +414,200 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", () => console.log("User disconnected:", socket.id));
+});
+
+// server.js, replace the existing /api/user/manage endpoint
+app.put("/api/user/manage", async (req, res) => {
+  const { email } = req.query;
+  const { newPassword, newname, newschoolName, suspend } = req.body;
+
+  try {
+    const query = { email };
+    let user = await User.findOne(query);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (newPassword) user.password = await bcrypt.hash(newPassword, 10);
+    if (newname) user.name = newname;
+    if (newschoolName) user.schoolName = newschoolName;
+    if (typeof suspend === "boolean") user.isSuspended = suspend;
+
+    await user.save();
+
+    res.json({ message: "User details updated successfully", user });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+});
+
+app.get("/api/users/count", async (req, res) => {
+  try {
+    const totalUsers = await User.countDocuments();
+    res.json({ totalUsers });
+  } catch (error) {
+    res.status(500).json({ message: "Server Error", error });
+  }
+});
+
+
+app.get("/api/datas/count" , async (req, res) =>{
+try {
+  const totaldata = await Data.countDocuments();
+  res.json({totaldata});
+}
+catch (error) {
+  res.status(500).json({ message: "Server Error", error });
+}
+}
+);
+
+
+//support
+// Define the Support Ticket Schema
+const supportTicketSchema = new mongoose.Schema({
+  userId: { type: String, required: true },
+  message: { type: String, required: true },
+  status: { type: String, enum: ["Pending", "Resolved", "Rejected"], default: "Pending" },
+  createdAt: { type: Date, default: Date.now },
+});
+
+// Create the model
+const SupportTicket = mongoose.model("SupportTicket", supportTicketSchema);
+
+// ✅ 1. Create a new support ticket (User)
+app.post("/api/support", async (req, res) => {
+  try {
+    const { userId, message } = req.body;
+
+    if (!userId || !message) {
+      return res.status(400).json({ error: "User ID and message are required" });
+    }
+
+    const newTicket = new SupportTicket({ userId, message });
+    await newTicket.save();
+
+    res.status(201).json({ message: "Support ticket created successfully", ticket: newTicket });
+  } catch (error) {
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// ✅ 2. Get all support tickets (Admin Panel)
+app.get("/api/support/admin", async (req, res) => {
+  try {
+    const tickets = await SupportTicket.find();
+    res.json(tickets);
+  } catch (error) {
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// ✅ 3. Get all tickets for a specific user
+app.get("/api/support/:userId", async (req, res) => {
+  try {
+    const tickets = await SupportTicket.find({ userId: req.params.userId });
+    res.json(tickets);
+  } catch (error) {
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// ✅ 4. Update ticket status (Admin)
+app.put("/api/support/:ticketId", async (req, res) => {
+  try {
+    const { status } = req.body;
+
+    if (!["Pending", "Resolved", "Rejected"].includes(status)) {
+      return res.status(400).json({ error: "Invalid status" });
+    }
+
+    const updatedTicket = await SupportTicket.findByIdAndUpdate(
+      req.params.ticketId,
+      { status },
+      { new: true }
+    );
+
+    if (!updatedTicket) {
+      return res.status(404).json({ error: "Ticket not found" });
+    }
+
+    res.json({ message: "Ticket updated successfully", updatedTicket });
+  } catch (error) {
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// ✅ 5. Delete a support ticket (Admin)
+app.delete("/api/support/:ticketId", async (req, res) => {
+  try {
+    const deletedTicket = await SupportTicket.findByIdAndDelete(req.params.ticketId);
+
+    if (!deletedTicket) {
+      return res.status(404).json({ error: "Ticket not found" });
+    }
+
+    res.json({ message: "Ticket deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+//api to get all users details from backend 
+app.get('/api/data/:userId', async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const result = await Data.find({ userId });
+
+    if (!result || result.length === 0) {
+      return res.status(404).json({ message: 'No data found for this user' });
+    }
+
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
+});
+
+// server.js, update /api/logins/week endpoint
+app.get("/api/logins/week", authenticateToken, async (req, res) => {
+  const oneWeekAgo = new Date();
+  oneWeekAgo.setDate(oneWeekAgo.getDate() - 6); // past 7 days
+  const users = await User.find({ "loginLogs.0": { $exists: true } });
+
+  const loginCounts = Array(7).fill(0);
+  const today = new Date();
+
+  users.forEach(user => {
+    user.loginLogs.forEach(log => {
+      const diff = Math.floor((today - new Date(log)) / (1000 * 60 * 60 * 24));
+      if (diff >= 0 && diff < 7) loginCounts[6 - diff]++; // reverse order
+    });
+  });
+
+  res.json({ loginCounts });
+});
+
+// server.js, add after existing routes
+app.get("/api/users", authenticateToken, async (req, res) => {
+  try {
+    const users = await User.find().select("name email"); // Only fetch name and email
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching users", error: error.message });
+  }
+});
+
+// server.js, add after existing routes
+app.get("/api/data/all", authenticateToken, async (req, res) => {
+  try {
+    const data = await Data.find();
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching all data", error: error.message });
+  }
 });
 
 const PORT = process.env.PORT || 5000;

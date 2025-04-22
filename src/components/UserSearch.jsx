@@ -1,5 +1,6 @@
 import { useState } from "react";
 import axios from "axios";
+import AdminNavbar from "./AdminNavbar";
 
 const UserSearch = () => {
   const [email, setEmail] = useState("");
@@ -25,6 +26,8 @@ const UserSearch = () => {
   };
 
   return (
+        <div className="bg-gray-100 min-h-screen">
+            <AdminNavbar />
     <div className="max-w-md mx-auto p-6 bg-white shadow-lg rounded-lg mt-10">
       <h2 className="text-xl font-bold mb-4">Search Users</h2>
 
@@ -70,6 +73,7 @@ const UserSearch = () => {
           </ul>
         </div>
       )}
+    </div>
     </div>
   );
 };
