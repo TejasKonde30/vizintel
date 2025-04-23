@@ -58,7 +58,7 @@ const AdminNavbar = () => {
   return (
     <div className="relative">
       <LoadingBar color="#f97316" ref={loadingBarRef} height={3} shadow={true} />
-      <nav className="bg-black text-white sticky top-0 z-50 shadow-lg border-2px border-white">
+      <nav className="bg-black text-white sticky top-0 z-[100] shadow-lg border-2 border-black">
         <div className="max-w-7xl mx-auto flex justify-between items-center p-4">
           <Link to="/AdminDashboard" className="flex items-center">
             <img src="/photos/logo.png" alt="Logo" className="h-10 w-10" />

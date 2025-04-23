@@ -10,20 +10,20 @@ import axios from "axios";
 const UserNavbar = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isHamburgerOpen, setIsHamburgerOpen] = useState(false);
-  const [isServicesOpen, setIsServicesOpen] = useState(false); // New state for Services dropdown
+  const [isServicesOpen, setIsServicesOpen] = useState(false);
   const dropdownRef = useRef(null);
   const hamburgerRef = useRef(null);
-  const servicesRef = useRef(null); // Ref for Services dropdown
+  const servicesRef = useRef(null);
   const loadingBarRef = useRef(null);
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const location = useLocation();
 
-  const { isAuthenticated, user, name } = useSelector((state) => state.auth) || { isAuthenticated: false, user: null, name: null };
+  const { isAuthenticated, user, name, identity } = useSelector((state) => state.auth) || {};
 
   const toggleDropdown = () => setIsDropdownOpen(!isDropdownOpen);
   const toggleHamburger = () => setIsHamburgerOpen(!isHamburgerOpen);
-  const toggleServices = () => setIsServicesOpen(!isServicesOpen); // Toggle Services dropdown
+  const toggleServices = () => setIsServicesOpen(!isServicesOpen);
 
   const closeDropdown = (event) => {
     if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -81,7 +81,7 @@ const UserNavbar = () => {
   useEffect(() => {
     document.addEventListener("mousedown", closeDropdown);
     document.addEventListener("mousedown", closeHamburger);
-    document.addEventListener("mousedown", closeServices); // Add listener for Services dropdown
+    document.addEventListener("mousedown", closeServices);
     return () => {
       document.removeEventListener("mousedown", closeDropdown);
       document.removeEventListener("mousedown", closeHamburger);
@@ -99,14 +99,13 @@ const UserNavbar = () => {
   const navItems = [
     { label: "Home", path: "/" },
     { label: "About", path: "/about" },
-    // { label: "Services", path: "/services" },
     { label: "Contact", path: "/contact" },
   ];
 
   return (
     <div className="relative">
       <LoadingBar color="#f97316" ref={loadingBarRef} height={3} shadow={true} />
-      <nav className="bg-black text-white sticky top-0 z-50 shadow-lg border-2px border-white">
+      <nav className="bg-black text-white sticky top-0 z-[100] shadow-lg border-2 border-black">
         <div className="max-w-7xl mx-auto flex justify-between items-center p-4">
           <div className="flex items-center">
             <a href="/" className="flex items-center">
@@ -121,7 +120,7 @@ const UserNavbar = () => {
                 {item.label}
               </a>
             ))}
-            {isAuthenticated && (
+            {isAuthenticated && identity === 0 && (
               <div className="relative" ref={servicesRef}>
                 <button
                   onClick={toggleServices}
@@ -195,7 +194,7 @@ const UserNavbar = () => {
                         <li>
                           <button
                             onClick={() => {
-                              navigate("/Dashboard"); // Default to file upload instead of dashboard
+                              navigate(identity === 1 ? "/Admindashboard" : "/Dashboard");
                               setIsDropdownOpen(false);
                             }}
                             className="flex items-center w-full px-4 py-2 text-sm text-gray-200 hover:text-orange-500 transition duration-200"
@@ -284,7 +283,7 @@ const UserNavbar = () => {
                         </a>
                       </li>
                     ))}
-                    {isAuthenticated && (
+                    {isAuthenticated && identity === 0 && (
                       <>
                         <li>
                           <button
