@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { FaChartLine, FaUsers, FaFileAlt } from "react-icons/fa";
 
+
 const About = () => {
   const navigate = useNavigate();
 

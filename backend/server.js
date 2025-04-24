@@ -119,6 +119,46 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
+// Get All Users
+app.get("/api/users", authenticateToken, async (req, res) => {
+  try {
+    const users = await User.find({}, "name email _id");
+    if (!users || users.length === 0) {
+      return res.status(404).json({ message: "No users found" });
+    }
+    res.status(200).json(users);
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+});
+
+// Get All Data Entries
+app.get("/api/data/all", authenticateToken, async (req, res) => {
+  try {
+    const data = await Data.find({}, "userId fileName createdAt _id");
+    if (!data || data.length === 0) {
+      return res.status(404).json({ message: "No data found" });
+    }
+    res.status(200).json(data);
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+});
+
+// Get Data for a Specific User
+app.get("/api/data/:userId", authenticateToken, async (req, res) => {
+  const { userId } = req.params;
+  try {
+    const result = await Data.find({ userId });
+    if (!result || result.length === 0) {
+      return res.status(404).json({ message: "No data found for this user" });
+    }
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+});
+
 // Register User
 app.post("/api/auth/register", async (req, res) => {
   const { name, email, password, schoolName } = req.body;
@@ -442,20 +482,6 @@ app.post("/api/auth/password-reset", async (req, res) => {
 // Test Route
 app.get("/", (req, res) => res.send("API is running..."));
 
-// Get All Files of Users
-app.get("/api/data/:userId", async (req, res) => {
-  const { userId } = req.params;
-  try {
-    const userFiles = await Data.find({ userId }).select("fileName data createdAt");
-    if (!userFiles.length) {
-      return res.status(404).json({ message: "No files found for this user" });
-    }
-    res.json(userFiles);
-  } catch (error) {
-    res.status(500).json({ message: "Server Error", error });
-  }
-});
-
 // Get Users Count
 app.get("/api/users/count", async (req, res) => {
   try {
@@ -545,6 +571,56 @@ app.delete("/api/support/:ticketId", async (req, res) => {
   }
 });
 
+// Traffic Schema
+const TrafficSchema = new mongoose.Schema({
+  date: { type: Date, required: true, unique: true },
+  count: { type: Number, default: 0 },
+});
+const Traffic = mongoose.model("Traffic", TrafficSchema);
+
+// Middleware to track traffic (e.g., page views)
+app.use(async (req, res, next) => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  try {
+    await Traffic.findOneAndUpdate(
+      { date: today },
+      { $inc: { count: 1 } },
+      { upsert: true }
+    );
+  } catch (err) {
+    console.error("Error tracking traffic:", err);
+  }
+  next();
+});
+
+// API to get weekly traffic data
+app.get("/api/traffic/week", async (req, res) => {
+  try {
+    const today = new Date();
+    today.setHours(23, 59, 59, 999);
+    const weekAgo = new Date(today);
+    weekAgo.setDate(today.getDate() - 6);
+
+    const traffic = await Traffic.find({
+      date: { $gte: weekAgo, $lte: today },
+    }).sort({ date: 1 });
+
+    const trafficCounts = Array(7).fill(0);
+    traffic.forEach((t) => {
+      const dayIndex = Math.floor((t.date - weekAgo) / (1000 * 60 * 60 * 24));
+      if (dayIndex >= 0 && dayIndex < 7) {
+        trafficCounts[dayIndex] = t.count;
+      }
+    });
+
+    res.json({ trafficCounts });
+  } catch (err) {
+    console.error("Error fetching traffic data:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 // WebSocket Connection
 io.on("connection", (socket) => {
   console.log("User connected:", socket.id);
@@ -557,22 +633,6 @@ io.on("connection", (socket) => {
   socket.on("disconnect", () => console.log("User disconnected:", socket.id));
 });
 
-//api to get all users details from backend 
-app.get('/api/data/:userId', async (req, res) => {
-  const { userId } = req.params;
-
-  try {
-    const result = await Data.find({ userId });
-
-    if (!result || result.length === 0) {
-      return res.status(404).json({ message: 'No data found for this user' });
-    }
-
-    res.status(200).json(result);
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error });
-  }
-});
 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));

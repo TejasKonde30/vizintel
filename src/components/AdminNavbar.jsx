@@ -68,7 +68,7 @@ const AdminNavbar = () => {
           <div className="hidden md:flex space-x-6 items-center">
             <Link to="/" className="hover:text-orange-500">Home</Link>
             <Link to="/ManageUsers" className="hover:text-orange-500">Manage Users</Link>
-            <Link to="/UserSearch" className="hover:text-orange-500">User Search</Link>
+            <Link to="/UserUploads" className="hover:text-orange-500">UserFiles</Link>
           </div>
 
           <div className="flex items-center space-x-4">

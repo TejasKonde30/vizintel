@@ -52,8 +52,8 @@ const Contact = () => {
       if (response.ok) {
         const newTicket = await response.json();
         const ticketWithStatus = {
-          ...newTicket,
-          status: newTicket.status || "Pending",
+          ...newTicket.ticket,
+          status: newTicket.ticket.status || "Pending",
         };
         setTickets([...tickets, ticketWithStatus]);
         setMessage("");
@@ -89,7 +89,7 @@ const Contact = () => {
 
       {/* Ticket Submission Form */}
       <motion.div
-        className="w-full max-w-2xl bg-gray-900 p-8 rounded-lg shadow-lg mb-12"
+        className="w-full max-w-2xl bg-gray-900 p-8 rounded-2xl shadow-lg mb-12"
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, delay: 0.2 }}
@@ -98,7 +98,7 @@ const Contact = () => {
           Submit a New Ticket
         </h2>
         {!userId ? (
-          <p className="text-red-400">
+          <p className="text-red-600">
             Please log in to submit a ticket.
           </p>
         ) : (
@@ -146,7 +146,7 @@ const Contact = () => {
             {tickets.map((ticket) => (
               <motion.div
                 key={ticket._id}
-                className="bg-gray-900 p-6 rounded-lg shadow-lg flex items-start gap-4"
+                className="bg-gray-900 p-6 rounded-2xl shadow-lg flex items-start gap-4"
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.5 }}
@@ -154,6 +154,9 @@ const Contact = () => {
                 <FaTicketAlt className="text-2xl text-orange-500" />
                 <div className="flex-1">
                   <p className="text-gray-300">{ticket.message}</p>
+                  <p className="text-sm text-gray-400 mt-1">
+                    Created: {new Date(ticket.createdAt).toLocaleString()}
+                  </p>
                   <p
                     className={`text-sm font-semibold mt-2 ${
                       ticket.status === "Resolved"
@@ -176,4 +179,3 @@ const Contact = () => {
 };
 
 export default Contact;
-
