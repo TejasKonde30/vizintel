@@ -93,12 +93,6 @@ const About = () => {
         <p className="text-gray-300 mb-4">
           Ready to take control? Access admin features now.
         </p>
-        <button
-          onClick={() => navigate("/adminlogin")}
-          className="px-6 py-3 bg-orange-500 text-white font-semibold rounded-lg shadow-md hover:bg-orange-600 transition duration-300"
-        >
-          Go to Admin Portal
-        </button>
       </motion.div>
     </div>
   );

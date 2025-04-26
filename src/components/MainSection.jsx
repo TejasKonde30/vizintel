@@ -456,6 +456,15 @@ const MainSection = () => {
                   >
                     <FaInstagram />
                   </a>
+                  <a
+                    href="https://x.com/GamingTeja35782?t=R1D4Gjg6reD7c3rtT93jgw&s=09"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-gray-300 hover:text-orange-500"
+                    aria-label="Aniket Singh X"
+                  >
+                    <FaTwitter />
+                  </a>
                 </div>
               </div>
               <h3 className="text-xl font-semibold text-orange-500 mb-4">Contact</h3>

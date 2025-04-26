@@ -106,18 +106,6 @@ const AdminNavbar = () => {
                     </li>
                     <li>
                       <button
-                        onClick={() => {
-                          navigate("/AdminSettings");
-                          setIsDropdownOpen(false);
-                        }}
-                        className="flex items-center w-full px-4 py-2 text-sm text-gray-200 hover:text-orange-500 transition duration-200"
-                      >
-                        <FaCog className="mr-2" />
-                        Settings
-                      </button>
-                    </li>
-                    <li>
-                      <button
                         onClick={handleLogout}
                         className="flex items-center w-full px-4 py-2 text-sm text-gray-200 hover:text-orange-500 transition duration-200"
                       >
